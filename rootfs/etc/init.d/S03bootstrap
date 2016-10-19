@@ -1,0 +1,48 @@
+#!/bin/sh
+#
+# Sets the hostname
+#
+
+start() {
+  echo -n "Bootstrapping OS:"
+
+  # extract the config tarball over the root of the fs
+  cat /proc/cmdline | sed 's/.*config=//' | base64 -d | gunzip | tar x -C /
+
+  # set the hostname
+  hostname -F /etc/hostname
+
+  # add the local user (this is purely cosmetic)
+  local username=$(cat /etc/dlite/username)
+  local userid=$(cat /etc/dlite/userid)
+  mkdir -p "/Users/${username}"
+  adduser -u "$userid" -G staff -s /bin/sh -D -h "/Users/${username}" "$username"
+  addgroup "$username" docker
+
+  echo "DONE"
+}
+
+stop() {
+  echo ""
+}
+
+restart() {
+  echo ""
+}
+
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  restart|reload)
+    restart
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart}"
+    exit 1
+esac
+
+exit $?

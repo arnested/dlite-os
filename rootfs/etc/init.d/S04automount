@@ -1,0 +1,69 @@
+#!/bin/sh
+#
+# Automatically format and mount persistent storage
+#
+
+
+start() {
+  echo -n "Automounting: "
+
+  fdisk -l /dev/vda | grep -q "doesn't contain a valid partition table"
+  if [ $? -eq 0 ]; then
+    (echo d;echo n; echo p; echo 1; echo ;echo +50M; echo n; echo p; echo 2;echo ;echo +1024M; echo t; echo 2; echo 82; echo n; echo p; echo 3; echo ;echo ;echo w) | fdisk /dev/vda
+    local timer=0
+    while [ "$timer" -lt 10 -a \(! -b "/dev/vda1" -o ! -b "/dev/vda2" -o ! -b "/dev/vda3" \)]; do
+      timer=$((timer + 1))
+      sleep 1
+    done
+    mkfs.ext4 /dev/vda1
+    mkswap /dev/vda2
+    mkfs.btrfs -m single /dev/vda3
+  fi
+
+  if [ -b "/dev/vda1" ]; then
+    mkdir -p /mnt/overlay
+    mount /dev/vda1 /mnt/overlay 2>/dev/null
+    mkdir -p /mnt/overlay/etc
+    mkdir -p /mnt/overlay/work/etc
+    mkdir -p /mnt/overlay/usr/bin
+    mkdir -p /mnt/overlay/work/usr/bin
+    mount -t overlay overlay -o lowerdir=/etc,upperdir=/mnt/overlay/etc,workdir=/mnt/overlay/work/etc /etc
+    mount -t overlay overlay -o lowerdir=/usr/bin,upperdir=/mnt/overlay/usr/bin,workdir=/mnt/overlay/work/usr/bin /usr/bin
+  fi
+
+  if [ -b "/dev/vda2" ]; then
+    swapon /dev/vda2
+  fi
+
+  if [ -b "/dev/vda3" ]; then
+    mkdir -p /var/lib/docker
+    mount -o noatime,discard,ssd,autodefrag /dev/vda3 /var/lib/docker 2>/dev/null
+  fi
+
+  echo "OK"
+}
+
+stop() {
+  echo ""
+}
+
+restart() {
+  echo ""
+}
+
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  restart|reload)
+    restart
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart}"
+    exit 1
+esac
+
+exit $?

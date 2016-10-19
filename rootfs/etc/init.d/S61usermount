@@ -1,0 +1,39 @@
+#!/bin/sh
+#
+# Create the user directory and mount the NFS share
+#
+
+start() {
+  echo -n "Mounting user share: "
+
+  local host_ip=$(cat /etc/dlite/host_ip)
+  local username=$(cat /etc/dlite/username)
+  mount -t nfs "${host_ip}:/Users/${username}" "/Users/${username}"
+
+  echo "OK"
+}
+
+stop() {
+  echo ""
+}
+
+restart() {
+  echo ""
+}
+
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  restart|reload)
+    restart
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart}"
+    exit 1
+esac
+
+exit $?
