@@ -9,13 +9,17 @@ CGROUPS="perf_event net_cls freezer devices blkio memory cpuacct cpuset cpu"
 
 start() {
     local docker_version=$(cat /etc/dlite/docker_version)
+    local latest_version=$(wget --header='Accept: application/json' https://github.com/docker/docker/releases/latest -q -O- | sed 's/^.*v\(.*\)\".*$/\1/')
     local installed_docker=$(/usr/bin/docker --version 2>/dev/null | sed -n 's/^.*version \([^, ]\+\).*$/\1/p')
-    if [ "$installed_docker" != "$docker_version" ]; then
+    if [ \( "$docker_version" == "latest" -a "$installed_docker" != "$latest_version" \) -o \( "$docker_version" != "latest" -a "$installed_docker" != "$docker_version" \) ]; then
       wget -qO /tmp/docker.tgz https://get.docker.io/builds/Linux/x86_64/docker-${docker_version}.tgz
-      tar -C /tmp -xf /tmp/docker.tgz
+      cd /tmp
+      gunzip docker.tgz
+      tar -xf docker.tar
+      cd -
       if [ -d "/tmp/docker" ]; then
         mv /tmp/docker/* /usr/bin/
-      else
+      elif [ -f "/tmp/usr/local/bin/docker" ]; then
         mv /tmp/usr/local/bin/docker /usr/bin/
       fi
     fi
