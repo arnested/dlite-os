@@ -1,6 +1,6 @@
 # dlite-os
 
-dlite-os is a lightweight Linux distribution made specifically for [dlite](https://github.com/nlf/dlite). It runs completely from RAM, is a small ~14MB download and boots in ~5s (YMMV).
+dlite-os is a lightweight Linux distribution made specifically for [dlite](https://github.com/nlf/dlite). It runs completely from RAM, is a small ~21MB download and boots in ~5s (YMMV).
 
 ## Features
 
