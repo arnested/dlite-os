@@ -9,7 +9,7 @@ start() {
 
   fdisk -l /dev/vda | grep -q "doesn't contain a valid partition table"
   if [ $? -eq 0 ]; then
-    (echo d;echo n; echo p; echo 1; echo ;echo +50M; echo n; echo p; echo 2;echo ;echo +1024M; echo t; echo 2; echo 82; echo n; echo p; echo 3; echo ;echo ;echo w) | fdisk /dev/vda
+    (echo d;echo n; echo p; echo 1; echo ;echo +512M; echo n; echo p; echo 2;echo ;echo +1024M; echo t; echo 2; echo 82; echo n; echo p; echo 3; echo ;echo ;echo w) | fdisk /dev/vda
     local timer=0
     while [ "$timer" -lt 10 -a \(! -b "/dev/vda1" -o ! -b "/dev/vda2" -o ! -b "/dev/vda3" \)]; do
       timer=$((timer + 1))
